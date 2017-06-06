@@ -1,6 +1,6 @@
 # TeamDroidr
 
-A TeamDroid Telegram bot - [TeamDroidr](@TeamDroidbot)
+A TeamDroid Telegram bot - [TeamDroidr](https://telegram.me/teamdroidbot)
 
 # Commands
 `/start` - Show intro
