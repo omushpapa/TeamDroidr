@@ -30,7 +30,7 @@ class CustomAction(argparse.Action):
         help = self._display_help(parser)
         return 'Intro:\n\nI am TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
 
-    def _display_networks(self, *args):
+    def _display_networks(self):
         social = {
             'Facebook': 'web.facebook.com/groups/TeamDroid001/',
             'Twitter': 'twitter.com/TeamDroidComm',
@@ -42,11 +42,11 @@ class CustomAction(argparse.Action):
                                 for i in social.keys()])
         return 'Community:\n\n' + networks
 
-    def _display_history(self, *args):
+    def _display_history(self):
         text = 'History:\n\nTeamDroid.\n\nFounded by Arnold Garry Galiwango.\n\nTeamDroidCommunity.com'
         return text
 
-    def _welcome_user(self, *args):
+    def _welcome_user(self):
         try:
             first_name = args[0]
         except IndexError:
