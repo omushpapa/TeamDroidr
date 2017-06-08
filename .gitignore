@@ -103,3 +103,6 @@ ENV/
 # Sublime Text Project files
 *.sublime-project
 *.sublime-workspace
+
+# Environment setup file
+startbot.sh
