@@ -16,18 +16,18 @@ token = os.environ['TELEGRAM_TOKEN']
 TelegramBot = telepot.Bot(token)
 
 
-def _display_help(arguments=None):
+def _display_help(*args):
     comand_list = ''.join(
         ['{} - {}\n'.format(i, COMMANDS[i]['description']) for i in COMMANDS.keys()])
     return 'Command me: \n' + comand_list + '\nteamdroidcommunity.com'
 
 
-def _display_intro(arguments=None):
+def _display_intro(*args):
     help = _display_help()
     return 'I am TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
 
 
-def _display_networks(arguments=None):
+def _display_networks(*args):
     social = {
         'facebook': 'web.facebook.com/groups/TeamDroid001/',
         'twitter': 'twitter.com/TeamDroidComm',
@@ -39,12 +39,16 @@ def _display_networks(arguments=None):
     return networks
 
 
-def _display_history(arguments=None):
+def _display_history(*args):
     text = 'TeamDroid.\n\nFounded by Arnold Garry Galiwango.\n\nTeamDroidCommunity.com'
     return text
 
 
-def _welcome_user(first_name):
+def _welcome_user(*args):
+    try:
+        first_name = args[0]
+    except IndexError:
+        first_name = 'user'
     message = 'Welcome {} to TeamDroid. \n\n{}'.format(
         first_name.title(), _display_intro())
     return message
