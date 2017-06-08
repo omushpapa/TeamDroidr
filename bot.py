@@ -12,6 +12,14 @@ from bs4 import BeautifulSoup
 from pprint import pformat
 from datetime import datetime
 
+# Django configuration
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+
+from data.models import Article, Lookup
+
 token = os.environ['TELEGRAM_TOKEN']
 
 TelegramBot = telepot.Bot(token)
@@ -46,39 +54,53 @@ class CustomAction(argparse.Action):
         text = 'History:\n\nTeamDroid.\n\nFounded by Arnold Garry Galiwango.\n\nTeamDroidCommunity.com'
         return text
 
-    def _get_highlights(self):
+    def _check_recent(self):
         link = 'http://teamdroidcommunity.com/home/'
         page = urllib.urlopen(link).read()
+
+        lookup = Lookup.objects.filter(id=1).update(last=datetime.now())
+
         soup = BeautifulSoup(page, 'html.parser')
         divs = soup.find_all('div', 'w-blog-post-body')
-        highlights_list = []
-        links_list = []
-        for i in divs:
-            article = i.find('a', 'entry-title')
+        for item in divs:
+            article = item.find('a', 'entry-title')
             try:
                 article_link = article.get('href')
             except AttributeError:
                 article_link = ''
 
-            if article_link not in links_list:
-                links_list.append(article_link)
-                title = article.text
-                date = i.find('time').text
-                timestamp = datetime.strptime(date, "%B %d, %Y").strftime("%s")
-                author = i.find('span', 'author').text
+            title = article.text
+            date = item.find('time').text
+            timestamp = datetime.strptime(date, "%B %d, %Y")
+            author = item.find('span', 'author').text
+            obj, created = Article.objects.get_or_create(link=article_link,
+                                                         title=title, date=timestamp, author=author)
 
-                highlights_list.append((timestamp, encode(title), encode(
-                    date), encode(author), encode(article_link)))
-
-        if highlights_list:
-            highlights = 'Highlights:\n'
-            for count, i in enumerate(sorted(highlights_list, reverse=True)[:10], 1):
-                highlights += '{0}. \t{1}\n\t{2} - {3}\n\t{4}\n\n'.format(count, i[1], i[
-                                                                          2], i[3], i[4])
-
-            return highlights
+    def _get_highlights(self):
+        try:
+            obj = Lookup.objects.get(id=1)
+        except Lookup.DoesNotExist:
+            self._check_recent()
         else:
-            return 'No highlights for today.'
+            article_date = obj.last.strftime('%s')
+            current_date = datetime.now().strftime('%s')
+            time_diff = int(current_date) - int(article_date)
+            if time_diff > 6 * 60 * 60:     # Check for update every 6 hours
+                print 'Checking for latest'
+                self._check_recent()
+        finally:
+            articles = Article.objects.order_by('-date')[:10]
+
+            if articles:
+                highlights = ''
+                for count, article in enumerate(articles, 1):
+                    highlights += '{0}. \t{1}\n\t{2} - {3}\n\t{4}\n\n'.format(
+                        count, encode(article.title), article.date.strftime(
+                            '%B %d, %Y'),
+                        encode(article.author), encode(article.link))
+                return highlights
+            else:
+                return 'No highlights for today.'
 
 
 class StartAction(CustomAction):

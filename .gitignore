@@ -104,5 +104,6 @@ ENV/
 *.sublime-project
 *.sublime-workspace
 
-# Environment setup file
+# Environment setup files
 startbot.sh
+*.db
