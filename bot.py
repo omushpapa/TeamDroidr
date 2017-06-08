@@ -24,11 +24,11 @@ class CustomAction(argparse.Action):
     def _display_help(self, parser):
         help = parser.format_help()
         help_message = ''.join(help.split(':')[2:])
-        return 'You asked for help?' + help_message
+        return 'Need help? Here\'s some.\n' + help_message
 
     def _display_intro(self, parser):
         help = self._display_help(parser)
-        return 'Intro:\n\nI am TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
+        return 'Hi,\n\nI am TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
 
     def _display_networks(self):
         social = {
@@ -45,15 +45,6 @@ class CustomAction(argparse.Action):
     def _display_history(self):
         text = 'History:\n\nTeamDroid.\n\nFounded by Arnold Garry Galiwango.\n\nTeamDroidCommunity.com'
         return text
-
-    def _welcome_user(self):
-        try:
-            first_name = args[0]
-        except IndexError:
-            first_name = 'user'
-        message = 'Welcome:\n\nWelcome {} to TeamDroid. \n\n{}'.format(
-            first_name.title(), self._display_intro())
-        return message
 
     def _get_highlights(self):
         link = 'http://teamdroidcommunity.com/home/'
@@ -129,6 +120,7 @@ class HistoryAction(CustomAction):
             values = self._display_history()
         setattr(namespace, self.dest, values)
 
+
 parser = argparse.ArgumentParser(prefix_chars='/', add_help=False)
 group = parser.add_argument_group('group')
 group.add_argument('/start', '/start@TeamDroidbot',
@@ -142,6 +134,14 @@ group.add_argument('/community', '/community@TeamDroidbot', help='Show a list of
                    nargs=0, action=CommunityAction)
 group.add_argument('/history', '/history@TeamDroidbot',
                    help='Show a description of TeamDroid\'s historical growth', nargs=0, action=HistoryAction)
+
+
+def _welcome_user(**kwargs):
+    intro = ''.join(parser.format_help().split(':')[2:])
+    first_name = kwargs.get('first_name')
+    message = 'Welcome {} to TeamDroid. \n\nHere are some commands to get you started.\n\n{}'.format(
+        first_name.title(), intro)
+    return message
 
 
 def handle(msg):
@@ -174,7 +174,7 @@ def handle(msg):
         new_members = msg.get('new_chat_members')
         for member in new_members:
             TelegramBot.sendMessage(
-                chat_id, _welcome_user(member['first_name']))
+                chat_id, _welcome_user(**member))
 
 
 MessageLoop(TelegramBot, handle).run_as_thread()
