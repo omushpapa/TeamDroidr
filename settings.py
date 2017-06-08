@@ -1,7 +1,13 @@
+import os
+
+DB_PASS = os.environ['DB_PASS']
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'botops.db',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'botops',
+        'USER': 'teamdroidr',
+        'PASSWORD': DB_PASS
     }
 }
 

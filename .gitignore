@@ -106,4 +106,6 @@ ENV/
 
 # Environment setup files
 startbot.sh
-*.db
+
+# Initial Django migration
+0001_initial.py
