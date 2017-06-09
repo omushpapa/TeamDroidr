@@ -106,3 +106,4 @@ ENV/
 
 # Environment setup files
 startbot.sh
+pushactivate.sh

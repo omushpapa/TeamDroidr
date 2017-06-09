@@ -51,7 +51,7 @@ class CustomAction(argparse.Action):
 
     def _display_intro(self, parser):
         help = self._display_help(parser)
-        return 'Hi,\n\nI am TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
+        return 'Hi,\n\nI\'m TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
 
     def _display_networks(self):
         social = {
