@@ -11,6 +11,8 @@ from telepot.loop import MessageLoop
 from bs4 import BeautifulSoup
 from pprint import pformat
 from datetime import datetime
+from collections import OrderedDict
+from textwrap import TextWrapper
 
 # Django configuration
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
@@ -26,13 +28,26 @@ TelegramBot = telepot.Bot(token)
 
 encode = lambda text: text.encode('utf-8')
 
+commands = OrderedDict([
+    ('/start', 'Show intro'),
+    ('/help', 'Show this help menu'),
+    ('/highlights', 'Show highlights from teamdroidcommunity.com. Add a number to get more highlights e.g. /highlights 12'),
+    ('/community', 'Show a list of TeamDroid social groups'),
+    ('/history', 'Show a description of TeamDroid\'s historical growth'),
+])
+
+DEFAULT_HIGHLIGHTS_COUNT = 5
+
+textwrapper = TextWrapper(subsequent_indent='\t\t\t\t\t\t', width=50)
+
 
 class CustomAction(argparse.Action):
 
     def _display_help(self, parser):
-        help = parser.format_help()
-        help_message = ''.join(help.split(':')[2:])
-        return 'Need help? Here\'s some.\n' + help_message
+        help = ''
+        for item in commands.items():
+            help += '{} - {}\n\n'.format(item[0], textwrapper.fill(item[1]))
+        return 'Need help? Here are some commands.\n' + help
 
     def _display_intro(self, parser):
         help = self._display_help(parser)
@@ -40,7 +55,7 @@ class CustomAction(argparse.Action):
 
     def _display_networks(self):
         social = {
-            'Facebook': 'web.facebook.com/groups/TeamDroid001/',
+            'Facebook': 'facebook.com/groups/TeamDroid001/',
             'Twitter': 'twitter.com/TeamDroidComm',
             'Website': 'teamdroidcommunity.com',
             'Forums': 'forum.teamdroidcommunity.com'
@@ -76,7 +91,7 @@ class CustomAction(argparse.Action):
             obj, created = Article.objects.get_or_create(link=article_link,
                                                          title=title, date=timestamp, author=author)
 
-    def _get_highlights(self):
+    def _get_highlights(self, count=DEFAULT_HIGHLIGHTS_COUNT):
         try:
             obj = Lookup.objects.get(id=1)
         except Lookup.DoesNotExist:
@@ -86,10 +101,9 @@ class CustomAction(argparse.Action):
             current_date = datetime.now().strftime('%s')
             time_diff = int(current_date) - int(article_date)
             if time_diff > 6 * 60 * 60:     # Check for update every 6 hours
-                print 'Checking for latest'
                 self._check_recent()
         finally:
-            articles = Article.objects.order_by('-date')[:10]
+            articles = Article.objects.order_by('-date')[:count]
 
             if articles:
                 highlights = ''
@@ -123,7 +137,14 @@ class HighlightAction(CustomAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         if values is not None:
-            values = self._get_highlights()
+            try:
+                num = int(values)
+            except ValueError:
+                num = DEFAULT_HIGHLIGHTS_COUNT
+            else:
+                num = num or 1
+            finally:
+                values = self._get_highlights(num)
         setattr(namespace, self.dest, values)
 
 
@@ -144,18 +165,17 @@ class HistoryAction(CustomAction):
 
 
 parser = argparse.ArgumentParser(prefix_chars='/', add_help=False)
-group = parser.add_argument_group('group')
-group.add_argument('/start', '/start@TeamDroidbot',
-                   help='Show intro', nargs=0, action=StartAction)
-group.add_argument('/help', '/help@TeamDroidbot',
-                   help='Show this help menu', nargs=0, action=HelpAction)
-group.add_argument('/highlights', '/highlights@TeamDroidbot',
-                   help='Show highlights from teamdroidcommunity.com', nargs=0,
-                   action=HighlightAction)
-group.add_argument('/community', '/community@TeamDroidbot', help='Show a list of TeamDroid social groups',
-                   nargs=0, action=CommunityAction)
-group.add_argument('/history', '/history@TeamDroidbot',
-                   help='Show a description of TeamDroid\'s historical growth', nargs=0, action=HistoryAction)
+parser.add_argument('/start', '/start@TeamDroidbot',
+                    help=commands['/start'], nargs=0, action=StartAction)
+parser.add_argument('/help', '/help@TeamDroidbot',
+                    help=commands['/help'], nargs=0, action=HelpAction)
+parser.add_argument('/highlights', '/highlights@TeamDroidbot',
+                    help=commands['/highlights'], nargs='?',
+                    const=DEFAULT_HIGHLIGHTS_COUNT, action=HighlightAction)
+parser.add_argument('/community', '/community@TeamDroidbot',
+                    help=commands['/community'], nargs=0, action=CommunityAction)
+parser.add_argument('/history', '/history@TeamDroidbot',
+                    help=commands['/history'], nargs=0, action=HistoryAction)
 
 
 def _welcome_user(**kwargs):
