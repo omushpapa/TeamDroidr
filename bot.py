@@ -43,14 +43,14 @@ textwrapper = TextWrapper(subsequent_indent='\t\t\t\t\t\t', width=50)
 
 class CustomAction(argparse.Action):
 
-    def _display_help(self, parser):
+    def _display_help(self):
         help = ''
         for item in commands.items():
             help += '{} - {}\n\n'.format(item[0], textwrapper.fill(item[1]))
         return 'Need help? Here are some commands.\n' + help
 
-    def _display_intro(self, parser):
-        help = self._display_help(parser)
+    def _display_intro(self):
+        help = self._display_help()
         return 'Hi,\n\nI\'m TeamDroidr. I was created in the likeness of TeamDroid. \n\nAt TeamDroid, we love to empower Android users.\n\n' + help
 
     def _display_networks(self):
@@ -129,7 +129,7 @@ class HelpAction(CustomAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         if values is not None:
-            values = self._display_help(parser=parser)
+            values = self._display_help()
         setattr(namespace, self.dest, values)
 
 
