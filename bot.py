@@ -179,7 +179,9 @@ parser.add_argument('/history', '/history@TeamDroidbot',
 
 
 def _welcome_user(**kwargs):
-    intro = ''.join(parser.format_help().split(':')[2:])
+    intro = ''
+    for item in commands.items():
+        intro += '{} - {}\n\n'.format(item[0], textwrapper.fill(item[1]))
     first_name = kwargs.get('first_name')
     message = 'Welcome {} to TeamDroid. \n\nHere are some commands to get you started.\n\n{}'.format(
         first_name.title(), intro)
